@@ -15,11 +15,19 @@ jobs:
       - name: Extract project
         run: unzip -q CreatorLab-Android-Source.zip
 
-      - name: Patch missing Compose import
+      - name: Patch selectable result text
         run: |
-          FILE="$(find . -name MainActivity.kt -print -quit)"
-          test -n "$FILE"
-          sed -i '/^package /a import androidx.compose.foundation.text.SelectionContainer' "$FILE"
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("CreatorLab/app/src/main/java/com/creatorlab/app/MainActivity.kt")
+          s = p.read_text()
+          s = s.replace(
+              "                    SelectionContainer { Text(result, color = Ink, fontSize = 13.sp, lineHeight = 21.sp) }",
+              "                    Text(result, color = Ink, fontSize = 13.sp, lineHeight = 21.sp)"
+          )
+          s = "\n".join(line for line in s.splitlines() if "SelectionContainer" not in line) + "\n"
+          p.write_text(s)
+          PY
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -42,9 +50,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-
-      - name: Fix Compose selection import
-        run: sed -i '2i import androidx.compose.foundation.text.selection.SelectionContainer' CreatorLab/app/src/main/java/com/creatorlab/app/MainActivity.kt
 
       - name: Build APK
         working-directory: CreatorLab

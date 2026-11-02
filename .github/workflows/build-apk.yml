@@ -37,6 +37,9 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Fix Compose selection import
+        run: sed -i '/^import androidx\\.compose\\.foundation\\.\\*$/a import androidx.compose.foundation.text.selection.SelectionContainer' CreatorLab/app/src/main/java/com/creatorlab/app/MainActivity.kt
+
       - name: Build APK
         working-directory: CreatorLab
         run: gradle assembleDebug
